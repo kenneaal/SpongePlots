@@ -50,9 +50,9 @@ public class SpongePlots {
 	@Subscribe
 	public void onPreInitialization(PreInitializationEvent event){
 		getLogger().info("[SpongePlots]: Starting up da SpongePlots.");
-		
+
+		try{
 		if(!getDefaultConfig().exists()){
-			try{
 				getDefaultConfig().createNewFile();
 				config = getConfigManager().load();
 				
@@ -63,27 +63,22 @@ public class SpongePlots {
 				config.getNode("DB","Password").setValue("YouReallyShouldChangeMe");
 				config.getNode("DB","Configured").setValue(0);
 				getConfigManager().save(config);
-				getLogger().info("[SpongePlots]: Created default configuration, SpongePlots will not run until you have edited this file!");
-			} catch (IOException exception){
+//				getLogger().info("[SpongePlots]: Created default configuration, SpongePlots will not run until you have edited this file!");
+			}
+			config = getConfigManager().load();
+		}catch (IOException exception){
 				getLogger().error("Couldn't create default configuration file!");
 			}
+
 		int version = config.getNode("version").getInt();
 		getLogger().info("Configfile version is now "+version+".");
 		}
-	}
+
 	@Subscribe
 	public void onServerStart(ServerStartedEvent event){
 		// Here it is!
 		getLogger().info("[SpongePlots]: Up and running.");
-		Connection dbcon = DB.getConnection(config.getNode("DB"));
+		DB.getConnection(config);
 		getLogger().info("[SpongePlots]: I called DB for a connection.");
-	}
-
-	public void doLog(int severity, String message){
-		switch(severity){
-		case 0: getLogger().info("[SpongePlots]: "+message);
-		case 1: getLogger().error("[SpongePlots]: "+message);
-		
-		}
 	}
 }

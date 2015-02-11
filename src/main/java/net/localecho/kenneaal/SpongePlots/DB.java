@@ -18,10 +18,10 @@ public class DB {
 	}
 
 	
-	public static Connection getConnection(ConfigurationNode config){
+	public static void getConnection(ConfigurationNode config){
 		Connection mycon;
 		mycon = null;
-		getLogger().info("[SpongePlots/DB]: Got called.");
+		logger.info("[SpongePlots/DB]: Got called with a "+config.getClass().getName());
 		//SpongePlots.doLog(0,"Well, shit. We just started a SQL connection!");
 		/* try {
 			int port = getConfigManager()
@@ -29,7 +29,7 @@ public class DB {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} */
-		logger.info("Children list: "+config.getChildrenList());
-		return mycon;
+		System.out.println("Children list: "+config.getNode("DB").getValue());
+		return;
 	}
 }
