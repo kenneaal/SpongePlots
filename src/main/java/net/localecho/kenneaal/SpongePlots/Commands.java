@@ -12,13 +12,12 @@ import org.spongepowered.api.util.command.CommandSource;
 import com.google.common.base.Optional;
 
 public class Commands implements CommandCallable{
-	private Server server;
-	private final Optional<String> desc= Optional.of("Displays a message to all players");
+	private Optional<Server> server;
+	private final Optional<String> desc = Optional.of("Displays a message to all players");
 	private final Optional<String> help = Optional.of("Displays a message to all players. It has no colors!");
 	
-	public boolean MyTestCommand(Server server){
-		this.server = server;
-		return true;
+	public Commands(){
+		//this.server = SpongePlots.getGame().getServer();
 	}
 
 	public List<String> getSuggestions(CommandSource source, String arguments)
@@ -28,7 +27,7 @@ public class Commands implements CommandCallable{
 
 	public boolean call(CommandSource source, String arguments,
 			List<String> parents) throws CommandException {
-		server.broadcastMessage(Messages.of(arguments));
+		//server.get().broadcastMessage(Messages.of(arguments));
 		return false;
 	}
 

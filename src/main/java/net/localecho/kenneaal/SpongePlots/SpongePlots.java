@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
@@ -48,7 +49,6 @@ import com.google.common.base.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-import com.google.inject.Guice;
 import com.google.inject.Inject;
 
 import net.localecho.kenneaal.SpongePlots.DB;
@@ -57,11 +57,13 @@ import net.localecho.kenneaal.SpongePlots.Commands;
 @Plugin(id = SpongePlots.NAME, name="SpongePlots", version="0.1")
 
 public class SpongePlots {
-	private Game game;
+	private static Game game;
+	private Optional<Server> server;
 	public static final String NAME = "SpongePlots";
 	private ConfigurationNode config = null;	
 	private static Logger logger;
 	private Optional<PluginContainer> pluginContainer;
+	private Commands cmdHandler;
 	
 	public SpongePlots() {
 	}
@@ -69,7 +71,9 @@ public class SpongePlots {
 	public static Logger getLogger() {
 		return logger;
 	}
-
+	public static Game getGame() {
+		return game;
+	}
 	@Inject
 	@DefaultConfig(sharedRoot=true)
 	private File defaultConfig;
@@ -93,6 +97,7 @@ public class SpongePlots {
 	@Subscribe
 	public void onPreInitialization(PreInitializationEvent event) {
 		game = event.getGame();		
+		server = event.getGame().getServer();
 		pluginContainer = game.getPluginManager().getPlugin(SpongePlots.NAME);
 		logger=game.getPluginManager().getLogger(pluginContainer.get());
 		getLogger().info("[SpongePlots]: SpongePlots is initializing.");
@@ -138,14 +143,16 @@ public class SpongePlots {
 			ResultSet rs = db.prepareStatement("SELECT dbversion from master").executeQuery();
 			
 		}*/
-		ser
+		CommandService cmdService = game.getCommandDispatcher();
+		PluginContainer plugin=pluginContainer.get();
+		
+		cmdService.register(plugin,cmdHandler,"message");
 	}
 	
 	@Subscribe
 	public void OnServerStared(ServerStartedEvent event) {
 		getLogger().info("[SpongePlots]: Ready and willing.");
 		// Start registering some commands here, yes?		
-		CommandService cmdService = game.getCommandDispatcher();
-		cmdService.register(pluginContainer, Commands.MyTestCommand(server),"message","broadcast");
+
 	}
 }
