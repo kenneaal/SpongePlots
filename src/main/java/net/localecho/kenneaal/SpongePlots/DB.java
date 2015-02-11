@@ -1,24 +1,35 @@
 package net.localecho.kenneaal.SpongePlots;
 
-//import java.io.IOException;
+import java.io.IOException;
 import java.sql.Connection;
 
-import static net.localecho.kenneaal.SpongePlots.SpongePlots.getLogger;
-//import static net.localecho.kenneaal.SpongePlots.SpongePlots.getConfigManager;
-//import ninja.leaping.configurate.ConfigurationNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+import ninja.leaping.configurate.ConfigurationNode;
 
 public class DB {
 
-	public static Connection getConnection(){
+	final static Logger logger = LoggerFactory.getLogger(SpongePlots.class);
+
+	public static Logger getLogger(){
+		return logger;
+	}
+
+	
+	public static Connection getConnection(ConfigurationNode config){
 		Connection mycon;
 		mycon = null;
-		getLogger().info("Well shit, we just tried to start a SQL connection!");
+		getLogger().info("[SpongePlots/DB]: Got called.");
+		//SpongePlots.doLog(0,"Well, shit. We just started a SQL connection!");
 		/* try {
 			int port = getConfigManager()
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} */
+		logger.info("Children list: "+config.getChildrenList());
 		return mycon;
 	}
 }

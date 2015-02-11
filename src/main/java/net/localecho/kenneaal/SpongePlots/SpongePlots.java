@@ -24,46 +24,44 @@ import net.localecho.kenneaal.SpongePlots.DB;
 
 public class SpongePlots {
 	Game game;
-	
+	ConfigurationNode config = null;	
 	@Inject
-	static Logger logger;
+	Logger logger;
 
-	public static Logger getLogger(){
+	public Logger getLogger(){
 		return logger;
 	}
 
 	@Inject
-	@DefaultConfig(sharedRoot=false)
+	@DefaultConfig(sharedRoot=true)
 	private File defaultConfig;
 
 	@Inject
-	@DefaultConfig(sharedRoot=false)
-	static private ConfigurationLoader configManager;
+	@DefaultConfig(sharedRoot=true)
+	private ConfigurationLoader configManager;
 	
 	public File getDefaultConfig(){
 		return defaultConfig;
 	}
-	public static ConfigurationLoader getConfigManager(){
+	public ConfigurationLoader getConfigManager(){
 		return configManager;
 	}
 	
 	@Subscribe
 	public void onPreInitialization(PreInitializationEvent event){
 		getLogger().info("[SpongePlots]: Starting up da SpongePlots.");
-		ConfigurationNode config = null;
 		
 		if(!getDefaultConfig().exists()){
 			try{
 				getDefaultConfig().createNewFile();
 				config = getConfigManager().load();
 				
-				config.getNode("version").setValue(1);
-				config.getNode("DBprovider").setValue("MySQL");
-				config.getNode("SQLHost").setValue("127.0.0.1");
-				config.getNode("SQLUsername").setValue("SpongePlots");
-				config.getNode("SQLPassword").setValue("YouReallyShouldChangeMe");
-				config.getNode("SQLPort").setValue(3306);
-				config.getNode("DBconfigured").setValue(0);
+				config.getNode("ConfigVersion").setValue(1);
+				config.getNode("DB","Host").setValue("127.0.0.1");
+				config.getNode("DB","Port").setValue(3306);
+				config.getNode("DB","Username").setValue("SpongePlots");
+				config.getNode("DB","Password").setValue("YouReallyShouldChangeMe");
+				config.getNode("DB","Configured").setValue(0);
 				getConfigManager().save(config);
 				getLogger().info("[SpongePlots]: Created default configuration, SpongePlots will not run until you have edited this file!");
 			} catch (IOException exception){
@@ -77,9 +75,15 @@ public class SpongePlots {
 	public void onServerStart(ServerStartedEvent event){
 		// Here it is!
 		getLogger().info("[SpongePlots]: Up and running.");
-		Connection dbcon = DB.getConnection();
+		Connection dbcon = DB.getConnection(config.getNode("DB"));
 		getLogger().info("[SpongePlots]: I called DB for a connection.");
 	}
 
-	
+	public void doLog(int severity, String message){
+		switch(severity){
+		case 0: getLogger().info("[SpongePlots]: "+message);
+		case 1: getLogger().error("[SpongePlots]: "+message);
+		
+		}
+	}
 }
