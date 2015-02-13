@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -46,8 +47,8 @@ import org.spongepowered.api.Server;
 
 import com.google.common.base.Optional;
 
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 
 import com.google.inject.Inject;
 
@@ -60,7 +61,7 @@ public class SpongePlots {
 	private static Game game;
 	private Optional<Server> server;
 	public static final String NAME = "SpongePlots";
-	private ConfigurationNode config = null;	
+	private CommentedConfigurationNode config = null;	
 	private static Logger logger;
 	private Optional<PluginContainer> pluginContainer;
 	private Commands cmdHandler;
@@ -80,12 +81,12 @@ public class SpongePlots {
 
 	@Inject
 	@DefaultConfig(sharedRoot=true)
-	private ConfigurationLoader configManager;
+	private HoconConfigurationLoader configManager;
 	
 	public File getDefaultConfig() {
 		return defaultConfig;
 	}
-	public ConfigurationLoader getConfigManager() {
+	public HoconConfigurationLoader getConfigManager() {
 		return configManager;
 	}
 
@@ -107,13 +108,17 @@ public class SpongePlots {
 				getDefaultConfig().createNewFile();
 				config = getConfigManager().load();
 				config.getNode("configVersion").setValue(1);
+				config.getNode("configVersion").setComment("This is an internal variable used by the config system.");
 				config.getNode("DB","host").setValue("127.0.0.1");
+				config.getNode("DB","host").setComment("This is the hostname or IP address of your database server.");
 				config.getNode("DB","port").setValue(3306);
+				config.getNode("DB","port").setComment("The port of your SQL server. The default port for MySQL is 3306.");
 				config.getNode("DB","username").setValue("SpongePlots");
 				config.getNode("DB","password").setValue("YouReallyShouldChangeMe");
 				config.getNode("DB","database").setValue("SpongePlots");
 				config.getNode("DB","configured").setValue(false);
 				config.getNode("DB","requiredVersion").setValue(1);
+				config.getNode("Plots","usePolygonalPlots").setValue(false);
 				getConfigManager().save(config);
 				getLogger().info(String.format("[%s]: Created default configuration, SpongePlots will not run until you have edited this file!",SpongePlots.NAME));
 			}
@@ -138,13 +143,26 @@ public class SpongePlots {
 			return;
 		}
 		getLogger().info("[SpongePlots]: Connected to database.");
-		DB.createTables(db, 1);
-		/* try{
+		
+		try {
 			ResultSet rs = db.prepareStatement("SELECT dbversion from master").executeQuery();
+			if(rs.getInt("dbversion") < config.getNode("DB","requiredVersion").getInt()) {
+				getLogger().info("[Spongeplots]: Upgrading from version " + rs.getInt("dbversion") + 
+						" to required version " + config.getNode("DB","requiredVersion").getInt() + ".");
+				DB.createTables(db, config.getNode("DB","requiredVersion").getInt());
+			}
+			getLogger().info("[Spongeplots]: Database version OK.");
 			
-		}*/
+		} catch (SQLException e) {
+			getLogger().error("[Spongeplots]: SQL error: "+e);
+		}
+		finally {
+			// Fleh.
+		}
 		CommandService cmdService = game.getCommandDispatcher();
 		PluginContainer plugin=pluginContainer.get();
+		cmdHandler = new Commands();
+		getLogger().info("Calling register with plugin "+plugin.getName());
 		
 		cmdService.register(plugin,cmdHandler,"message");
 	}

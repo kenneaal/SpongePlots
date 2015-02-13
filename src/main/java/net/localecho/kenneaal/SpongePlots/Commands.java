@@ -1,5 +1,6 @@
 package net.localecho.kenneaal.SpongePlots;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,26 +14,26 @@ import com.google.common.base.Optional;
 
 public class Commands implements CommandCallable{
 	private Optional<Server> server;
-	private final Optional<String> desc = Optional.of("Displays a message to all players");
-	private final Optional<String> help = Optional.of("Displays a message to all players. It has no colors!");
+	private final Optional<String> desc = Optional.of("Provides commands for SpongePlots.");
+	private final Optional<String> help = Optional.of("Provides commands for SpongePlots.");
 	
 	public Commands(){
-		//this.server = SpongePlots.getGame().getServer();
+		this.server = SpongePlots.getGame().getServer();
 	}
 
 	public List<String> getSuggestions(CommandSource source, String arguments)
 			throws CommandException {
-		return Collections.emptyList();
+		return Arrays.asList("foo","bar","baz");
 	}
 
 	public boolean call(CommandSource source, String arguments,
 			List<String> parents) throws CommandException {
-		//server.get().broadcastMessage(Messages.of(arguments));
+		server.get().broadcastMessage(Messages.of("SpongePlots: "+arguments));
 		return false;
 	}
 
 	public boolean testPermission(CommandSource source) {
-		return source.hasPermission("example.exampleCommand");
+		return source.hasPermission("SpongePlots.mainCommand");
 	}
 
 	public Optional<String> getShortDescription() {
