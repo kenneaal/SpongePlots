@@ -114,7 +114,9 @@ public class SpongePlots {
 				config.getNode("DB","port").setValue(3306);
 				config.getNode("DB","port").setComment("The port of your SQL server. The default port for MySQL is 3306.");
 				config.getNode("DB","username").setValue("SpongePlots");
+				config.getNode("DB","username").setComment("The username to connect to your SQL database. DO NOT USE ROOT!");
 				config.getNode("DB","password").setValue("YouReallyShouldChangeMe");
+				config.getNode("DB","password").setComment("The password for your SQL user. This should be a good, strong password.");
 				config.getNode("DB","database").setValue("SpongePlots");
 				config.getNode("DB","configured").setValue(false);
 				config.getNode("DB","requiredVersion").setValue(1);
