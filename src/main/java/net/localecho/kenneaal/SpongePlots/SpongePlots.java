@@ -24,7 +24,6 @@
 
 package net.localecho.kenneaal.SpongePlots;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -55,124 +54,161 @@ import com.google.inject.Inject;
 import net.localecho.kenneaal.SpongePlots.DB;
 import net.localecho.kenneaal.SpongePlots.Commands;
 
-@Plugin(id = SpongePlots.NAME, name="SpongePlots", version="0.1")
-
+@Plugin(id = SpongePlots.NAME, name = "SpongePlots", version = "0.1")
 public class SpongePlots {
-	private static Game game;
-	private Optional<Server> server;
-	public static final String NAME = "SpongePlots";
-	private CommentedConfigurationNode config = null;	
-	private static Logger logger;
-	private Optional<PluginContainer> pluginContainer;
-	private Commands cmdHandler;
-	
-	public SpongePlots() {
-	}
-	
-	public static Logger getLogger() {
-		return logger;
-	}
-	public static Game getGame() {
-		return game;
-	}
-	@Inject
-	@DefaultConfig(sharedRoot=true)
-	private File defaultConfig;
+    private static Game game;
+    private Optional<Server> server;
+    public static final String NAME = "SpongePlots";
+    private CommentedConfigurationNode config = null;
+    private static Logger logger;
+    private Optional<PluginContainer> pluginContainer;
+    private Commands cmdHandler;
 
-	@Inject
-	@DefaultConfig(sharedRoot=true)
-	private HoconConfigurationLoader configManager;
-	
-	public File getDefaultConfig() {
-		return defaultConfig;
-	}
-	public HoconConfigurationLoader getConfigManager() {
-		return configManager;
-	}
+    public SpongePlots() {
+    }
 
-	@Subscribe
-	public void onPlayerJoin(PlayerJoinEvent event){
-		event.getPlayer().sendMessage("Welcome to a SpongePlots powered server!");
-	}
-	
-	@Subscribe
-	public void onPreInitialization(PreInitializationEvent event) {
-		game = event.getGame();		
-		server = event.getGame().getServer();
-		pluginContainer = game.getPluginManager().getPlugin(SpongePlots.NAME);
-		logger=game.getPluginManager().getLogger(pluginContainer.get());
-		getLogger().info("[SpongePlots]: SpongePlots is initializing.");
+    public static Logger getLogger() {
+        return logger;
+    }
 
-		try{
-		if(!getDefaultConfig().exists()) {
-				getDefaultConfig().createNewFile();
-				config = getConfigManager().load();
-				config.getNode("configVersion").setValue(1);
-				config.getNode("configVersion").setComment("This is an internal variable used by the config system.");
-				config.getNode("DB","host").setValue("127.0.0.1");
-				config.getNode("DB","host").setComment("This is the hostname or IP address of your database server.");
-				config.getNode("DB","port").setValue(3306);
-				config.getNode("DB","port").setComment("The port of your SQL server. The default port for MySQL is 3306.");
-				config.getNode("DB","username").setValue("SpongePlots");
-				config.getNode("DB","username").setComment("The username to connect to your SQL database. DO NOT USE ROOT!");
-				config.getNode("DB","password").setValue("YouReallyShouldChangeMe");
-				config.getNode("DB","password").setComment("The password for your SQL user. This should be a good, strong password.");
-				config.getNode("DB","database").setValue("SpongePlots");
-				config.getNode("DB","configured").setValue(false);
-				config.getNode("DB","requiredVersion").setValue(1);
-				config.getNode("Plots","usePolygonalPlots").setValue(false);
-				getConfigManager().save(config);
-				getLogger().info(String.format("[%s]: Created default configuration, SpongePlots will not run until you have edited this file!",SpongePlots.NAME));
-			}
-			config = getConfigManager().load();
-			getLogger().info(String.format("[%s]: Loaded master configuration.",SpongePlots.NAME));
-		}catch (IOException exception) {
-				getLogger().error("[SpongePlots]: Couldn't create default configuration file!");
-			}
-		}
+    public static Game getGame() {
+        return game;
+    }
 
-	@Subscribe
-	public void onInitialization(InitializationEvent event) {
-		Connection db; 
-		if(config.getNode("DB","configured").getBoolean()!=true){
-			getLogger().info("[SpongePlots] You haven't configured %s's database. Exiting. Value is "+config.getNode("DB","configured").getBoolean());
-			return;
-		}
-		getLogger().info("[SpongePlots]: Connecting to backend.");
-		db = DB.getConnection(config.getNode("DB"));
-		if(db==null) {
-			getLogger().error("[SpongePlots]: Critical error: Couldn't get a valid database connection. Going inert.");
-			return;
-		}
-		getLogger().info("[SpongePlots]: Connected to database.");
-		
-		try {
-			ResultSet rs = db.prepareStatement("SELECT dbversion from master").executeQuery();
-			if(rs.getInt("dbversion") < config.getNode("DB","requiredVersion").getInt()) {
-				getLogger().info("[Spongeplots]: Upgrading from version " + rs.getInt("dbversion") + 
-						" to required version " + config.getNode("DB","requiredVersion").getInt() + ".");
-				DB.createTables(db, config.getNode("DB","requiredVersion").getInt());
-			}
-			getLogger().info("[Spongeplots]: Database version OK.");
-			
-		} catch (SQLException e) {
-			getLogger().error("[Spongeplots]: SQL error: "+e);
-		}
-		finally {
-			// Fleh.
-		}
-		CommandService cmdService = game.getCommandDispatcher();
-		PluginContainer plugin=pluginContainer.get();
-		cmdHandler = new Commands();
-		getLogger().info("Calling register with plugin "+plugin.getName());
-		
-		cmdService.register(plugin,cmdHandler,"message");
-	}
-	
-	@Subscribe
-	public void OnServerStared(ServerStartedEvent event) {
-		getLogger().info("[SpongePlots]: Ready and willing.");
-		// Start registering some commands here, yes?		
+    @Inject
+    @DefaultConfig(sharedRoot = true)
+    private File defaultConfig;
 
-	}
+    @Inject
+    @DefaultConfig(sharedRoot = true)
+    private HoconConfigurationLoader configManager;
+
+    public File getDefaultConfig() {
+        return defaultConfig;
+    }
+
+    public HoconConfigurationLoader getConfigManager() {
+        return configManager;
+    }
+
+    @Subscribe
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        event.getPlayer().sendMessage(
+                "Welcome to a SpongePlots powered server!");
+    }
+
+    @Subscribe
+    public void onPreInitialization(PreInitializationEvent event) {
+        game = event.getGame();
+        server = event.getGame().getServer();
+        pluginContainer = game.getPluginManager().getPlugin(SpongePlots.NAME);
+        logger = game.getPluginManager().getLogger(pluginContainer.get());
+        getLogger().info("[SpongePlots]: SpongePlots is initializing.");
+
+        try {
+            if (!getDefaultConfig().exists()) {
+                getDefaultConfig().createNewFile();
+                config = getConfigManager().load();
+                config.getNode("configVersion").setValue(1);
+                config.getNode("configVersion")
+                        .setComment(
+                                "This is an internal variable used by the config system.");
+                config.getNode("DB", "host").setValue("127.0.0.1");
+                config.getNode("DB", "host")
+                        .setComment(
+                                "This is the hostname or IP address of your database server.");
+                config.getNode("DB", "port").setValue(3306);
+                config.getNode("DB", "port")
+                        .setComment(
+                                "The port of your SQL server. The default port for MySQL is 3306.");
+                config.getNode("DB", "username").setValue("SpongePlots");
+                config.getNode("DB", "username")
+                        .setComment(
+                                "The username to connect to your SQL database. DO NOT USE ROOT!");
+                config.getNode("DB", "password").setValue(
+                        "YouReallyShouldChangeMe");
+                config.getNode("DB", "password")
+                        .setComment(
+                                "The password for your SQL user. This should be a good, strong password.");
+                config.getNode("DB", "database").setValue("SpongePlots");
+                config.getNode("DB", "database").setComment(
+                        "The database to connect to. This must already exist.");
+                config.getNode("DB", "configured").setValue(false);
+                config.getNode("DB", "configured")
+                        .setComment(
+                                "Before SpongePlots will work, you must set this value to true.");
+                config.getNode("DB", "requiredVersion").setValue(1);
+                config.getNode("DB", "requiredVersion")
+                        .setComment(
+                                "Do not touch this variable. It is altered if SpongePlots needs to update its database tables.");
+                config.getNode("Plots", "usePolygonalPlots").setValue(false);
+                getConfigManager().save(config);
+                getLogger()
+                        .info(String
+                                .format("[%s]: Created default configuration, SpongePlots will not run until you have edited this file!",
+                                        SpongePlots.NAME));
+            }
+            config = getConfigManager().load();
+            getLogger().info(
+                    String.format("[%s]: Loaded master configuration.",
+                            SpongePlots.NAME));
+        } catch (IOException exception) {
+            getLogger()
+                    .error("[SpongePlots]: Couldn't create default configuration file!");
+        }
+    }
+
+    @Subscribe
+    public void onInitialization(InitializationEvent event) {
+        Connection db;
+        if (config.getNode("DB", "configured").getBoolean() != true) {
+            getLogger().info(
+                    "[SpongePlots] You haven't configured %s's database. Exiting. Value is "
+                            + config.getNode("DB", "configured").getBoolean());
+            return;
+        }
+        getLogger().info("[SpongePlots]: Connecting to backend.");
+        db = DB.getConnection(config.getNode("DB"));
+        if (db == null) {
+            getLogger()
+                    .error("[SpongePlots]: Critical error: Couldn't get a valid database connection. Going inert.");
+            return;
+        }
+        getLogger().info("[SpongePlots]: Connected to database.");
+
+        try {
+            ResultSet rs = db.prepareStatement("SELECT dbversion from master")
+                    .executeQuery();
+            if (rs.getInt("dbversion") < config
+                    .getNode("DB", "requiredVersion").getInt()) {
+                getLogger().info(
+                        "[Spongeplots]: Upgrading from version "
+                                + rs.getInt("dbversion")
+                                + " to required version "
+                                + config.getNode("DB", "requiredVersion")
+                                        .getInt() + ".");
+                DB.createTables(db, config.getNode("DB", "requiredVersion")
+                        .getInt());
+            }
+            getLogger().info("[Spongeplots]: Database version OK.");
+
+        } catch (SQLException e) {
+            getLogger().error("[Spongeplots]: SQL error: " + e);
+        } finally {
+            // Fleh.
+        }
+        CommandService cmdService = game.getCommandDispatcher();
+        PluginContainer plugin = pluginContainer.get();
+        cmdHandler = new Commands();
+        getLogger().info("Calling register with plugin " + plugin.getName());
+
+        cmdService.register(plugin, cmdHandler, "message");
+    }
+
+    @Subscribe
+    public void onServerStared(ServerStartedEvent event) {
+        getLogger().info("[SpongePlots]: Ready and willing.");
+        // Start registering some commands here, yes?
+
+    }
 }
